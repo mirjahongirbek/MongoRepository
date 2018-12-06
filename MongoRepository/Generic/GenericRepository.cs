@@ -9,7 +9,7 @@ namespace MongoRepository.Generic
 {
     public class GenericRepository<TEntity> : IMongoRepository<TEntity> where TEntity:class, IMongoEntity
     {
-        IMongoCollection<TEntity> _db;
+       protected IMongoCollection<TEntity> _db;
 
         public GenericRepository(IMongoDatabase db)
         {
@@ -129,65 +129,61 @@ namespace MongoRepository.Generic
             var updateRes = _db.UpdateOne(filter, Builders<TEntity>.Update.Set(field, value));
             return updateRes.ModifiedCount == 1;
         }
-
         public  Task<TEntity> FindFirstAsync(string id)
         {
             return _db.Find(m => m.Id == id).FirstOrDefaultAsync();
         }
-
         public Task<TEntity> FindFirstAsync(Expression<Func<TEntity, bool>> predicat)
         {
             return _db.Find(predicat).FirstOrDefaultAsync();
         }
-
-        public Task<ICollection<TEntity>> GetAllAsync()
+        public async Task<ICollection<TEntity>> GetAllAsync()
         {
-            throw new NotImplementedException();
+            return await _db.Find(m => true).ToListAsync();
         }
-
-        public Task<string> InserOneAsync(TEntity entity)
+        public async Task<string> InserOneAsync(TEntity entity)
         {
-            throw new NotImplementedException();
+            if (entity.Id is string)
+            {
+                entity.Id = ObjectId.GenerateNewId().ToString();
+                var id = entity.Id as string;
+                if (string.IsNullOrEmpty(id))
+                {
+                    id = ObjectId.GenerateNewId().ToString();
+                    entity.Id = id;
+                }
+            }
+            _db.InsertOne(entity);
+            return  entity.Id;
         }
-
-        public Task<bool> UpdateOneAsync<TKey>(TEntity documentToModify, UpdateDefinition<TEntity> update)
+        public async Task<bool> UpdateOneAsync<TKey>(TEntity documentToModify, UpdateDefinition<TEntity> update)
         {
-            throw new NotImplementedException();
+            var filter = Builders<TEntity>.Filter.Eq(m => m.Id, documentToModify.Id);
+            var updateRes = _db.UpdateOne(filter, update, new UpdateOptions { IsUpsert = true });
+            return updateRes.ModifiedCount == 1;
         }
-
-        public Task<bool> UpdateOneAsync<TKey>(TEntity modifiedDocument)
+        public async Task<bool> UpdateOneAsync<TKey>(TEntity modifiedDocument)
         {
-            throw new NotImplementedException();
+            var filter = Builders<TEntity>.Filter.Eq(m => m.Id, modifiedDocument.Id);
+            var updateRes = _db.ReplaceOne(filter, modifiedDocument);
+            return updateRes.ModifiedCount == 1;
         }
-
-        public Task<bool> UpdateOneAsync(TEntity modifiedDocument)
+        public async Task<bool> UpdateOneAsync<TField>(TEntity documentToModify, Expression<Func<TEntity, TField>> field, TField value)
         {
-            throw new NotImplementedException();
+            var filter = Builders<TEntity>.Filter.Eq(m => m.Id, documentToModify.Id);
+            var updateRes = _db.UpdateOne(filter, Builders<TEntity>.Update.Set(field, value));
+            return updateRes.ModifiedCount == 1;
         }
-
-        public Task<bool> UpdateOneAsync<TField>(TEntity documentToModify, Expression<Func<TEntity, TField>> field, TField value)
+        public async Task<bool> UpdateOneAsync<TField>(FilterDefinition<TEntity> filter, Expression<Func<TEntity, TField>> field, TField value, string partitionKey = null)
         {
-            throw new NotImplementedException();
+            var updateRes = _db.UpdateOne(filter, Builders<TEntity>.Update.Set(field, value));
+            return updateRes.ModifiedCount == 1;
         }
-
-        public Task<bool> UpdateOneAsync<TField>(FilterDefinition<TEntity> filter, Expression<Func<TEntity, TField>> field, TField value, string partitionKey = null)
+        public async Task<bool> UpdateOneAsync<TKey, TField>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TField>> field, TField value, string partitionKey = null)
         {
-            throw new NotImplementedException();
+            var updateRes = _db.UpdateOne(filter, Builders<TEntity>.Update.Set(field, value));
+            return updateRes.ModifiedCount == 1;
         }
-
-        public Task<bool> UpdateOneAsync<TKey, TField>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TField>> field, TField value, string partitionKey = null)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> UpdateOneAsync<TField>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TField>> field, TField value, string partitionKey = null)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> UpdateOneAsync<TKey, TField>(TEntity documentToModify, Expression<Func<TEntity, TField>> field, TField value)
-        {
-            throw new NotImplementedException();
-        }
+      
     }
 }
