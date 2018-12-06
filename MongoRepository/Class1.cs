@@ -2,7 +2,5 @@
 
 namespace MongoRepository
 {
-    public class Class1
-    {
-    }
+   
 }
