@@ -2,6 +2,19 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <AssemblyVersion>1.0.1.2</AssemblyVersion>
+    <PackageId>Joha.MongoDbRepository</PackageId>
+    <Authors>Jahongir Murtozayev</Authors>
+    <Company>none</Company>
+    <Product>Joha.MongoDbRepository</Product>
+    <FileVersion>1.0.1.2</FileVersion>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <RepositoryUrl>https://github.com/mirjahongirbek/MongoRepository</RepositoryUrl>
+    <RepositoryType>C#</RepositoryType>
+    <PackageTags>mongodb</PackageTags>
+    <PackageReleaseNotes />
+    <Version>1.1.2</Version>
   </PropertyGroup>
 
   <ItemGroup>

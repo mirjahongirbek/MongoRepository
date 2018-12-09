@@ -11,9 +11,9 @@ namespace MongoRepository.Generic
     {
        protected IMongoCollection<TEntity> _db;
 
-        public GenericRepository(IMongoDatabase db)
+        public GenericRepository(IMongoContext db)
         {
-            _db = db.GetCollection<TEntity>(typeof(TEntity).Name);
+            _db = db.Database.GetCollection<TEntity>(typeof(TEntity).Name);
         }
         public string InserOne(TEntity entity)
         {
