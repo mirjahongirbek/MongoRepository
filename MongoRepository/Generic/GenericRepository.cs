@@ -1,20 +1,59 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using MongoDB.Driver.Core.Bindings;
+using MongoDB.Driver.Core.Operations;
 using MongoRepository.Interface;
+using StackExchange.Redis;
+
 namespace MongoRepository.Generic
 {
     public class GenericRepository<TEntity> : IMongoRepository<TEntity> where TEntity:class, IMongoEntity
     {
        protected IMongoCollection<TEntity> _db;
-
+        private IMongoDatabase _database;
+        private IDatabase _redis { get; set; }
         public GenericRepository(IMongoContext db)
         {
+            _database = db.Database;
             _db = db.Database.GetCollection<TEntity>(typeof(TEntity).Name);
         }
+        public GenericRepository(IMongoContext db, IDatabase redis)
+        {
+            _redis = redis;
+            _db = db.Database.GetCollection<TEntity>(typeof(TEntity).Name);
+        }
+        public IDatabase RedisDatabase { get { return _redis; } set { _redis = value; } }
+        private  void GetStatistic()
+        {
+           
+        }
+        public  async Task<BsonValue> EvalAsync(string javascript)
+        {
+            var client = _database.Client as MongoClient;
+
+            if (client == null)
+                throw new ArgumentException("Client is not a MongoClient");
+
+            var function = new BsonJavaScript(javascript);
+            var op = new EvalOperation(_database.DatabaseNamespace, function, null);
+
+            using (var writeBinding = new WritableServerBinding(client.Cluster, new CoreSessionHandle(NoCoreSession.Instance)))
+            {
+                return await op.ExecuteAsync(writeBinding, CancellationToken.None);
+            }
+        }
+        private void ReadCache(TEntity entity)
+        {
+
+        }
+        private void UpdateCache(TEntity entity) { }
+        private void DeleteCache(TEntity entity) { }
+        private void CreateCache(TEntity entity) { }
         public string InserOne(TEntity entity)
         {
             if (entity.Id is string)
